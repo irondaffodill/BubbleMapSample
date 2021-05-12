@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bubble Map</title>
+    <link rel="dns-prefetch" href="//code.highcharts.com" />
+
+    <link rel="stylesheet" href="vendor/jqueryui.css" />
+    <script src="vendor/jquery.js"></script>
+    <script src="vendor/jquery-migrate.js"></script>
+    <script
+      type="text/javascript"
+      src="https://code.highcharts.com/highcharts.js?ver=4.9.17"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://code.highcharts.com/maps/modules/map.js?ver=4.9.17"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://code.highcharts.com/mapdata/custom/world-continents.js?ver=4.9.17"
+    ></script>
+    <script>
+      jQuery(document).ready(function ($) {
+        jQuery.getJSON("vadata.json", function (data) {
+          var orUnique = {};
+          var distinct = [];
+          for (var i in data) {
+            if (typeof orUnique[data[i].impor] == "undefined") {
+              distinct.push(data[i].impor);
+            }
+            orUnique[data[i].impor] = 0;
+          }
+          function getTotal(data, origin) {
+            var count = 0;
+            for (var i = 0; i < data.length; i++) {
+              if (data[i].impor == origin) {
+                count++;
+              }
+            }
+            return count;
+          }
+
+          function getItem(array, value) {
+            for (var i = 0, len = array.length; i < len; i++)
+              if (array[i] && array[i].impor === value) return array[i];
+          }
+          //Years
+          var yearsRange = [];
+          for (i = 1816; i <= 1900; i++) yearsRange.push(i);
+
+          function getCount(data, date) {
+            var count = 0;
+            for (var i = 0; i < data.length; i++) {
+              if (data[i].dateSent.slice(0, 4) == date) {
+                count++;
+              }
+            }
+            return count;
+          }
+
+          var yearCounts = [];
+          yearsRange.forEach(function (year) {
+            var counts = getCount(data, year);
+            yearCounts.push({ name: year, y: counts });
+          });
+          var originsData = [];
+          distinct.forEach(function (neworigin) {
+            var counts = getTotal(data, neworigin);
+            var item = getItem(data, neworigin);
+            var lat = item.originsLat;
+            var lon = item.originsLong;
+            originsData.push({
+              name: neworigin,
+              lat: lat,
+              lon: lon,
+              z: counts,
+            });
+          });
+
+          $(function() {
+                var myChart = Highcharts.chart('container', {
+                    chart: {
+                        type: 'column',
+                        borderRadius: 15,
+                        spacingBottom: 50,
+                    },
+                    title: {
+                      text: null
+                    },
+                    legend: {
+                        enabled: false,
+                    },
+                    yAxis: {
+                        title: {
+                            text: null,
+                        }
+                    },
+                    xAxis: {
+                        type: "category"
+                    },
+                    series: [{
+                        data: yearCounts,
+                        turboThreshold: 1900,
+                        color: "#00744E",
+                        name: "Letters",
+                    }]
+                });
+            });
+          //Highcharts Map
+          $(function () {
+            var myMap = new Highcharts.Map("container", {
+              chart: {
+                map: "custom/world-continents",
+                height: 500,
+              },
+              title: {
+                text: null,
+              },
+              xAxis: {
+                minRange: 1,
+              },
+              yAxis: {
+                minRange: 1,
+              },
+              legend: {
+                enabled: false,
+              },
+              mapNavigation: {
+                enabled: true,
+                buttonOptions: {
+                  verticalAlign: "bottom",
+                },
+              },
+              series: [
+                {
+                  name: "Countries",
+                  enableMouseTracking: false,
+                },
+                {
+                  allowPointSelect: true,
+                  cursor: "pointer",
+                  type: "mapbubble",
+                  name: "Total Letters",
+                  color: "#78b5a1",
+                  data: originsData,
+                  minSize: 8,
+                  maxSize: "20%",
+                  tooltip: {
+                    pointFormat: "{point.name}: {point.z} letters",
+                  },
+                },
+              ],
+            });
+          });
+        //   //End Map
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div
+      id="container"
+      style="height: 500px; width: 500px; margin: 0; display: block;"
+    ></div>
+  </body>
+</html>

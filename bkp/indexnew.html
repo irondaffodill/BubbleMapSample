@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- <link rel="stylesheet" href="vendor/jqueryui.css" />
+    <script src="vendor/jquery.js"></script>
+    <script src="vendor/jquery-migrate.js"></script> -->
+    <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/data.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/data.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/offline-exporting.js"></script>
+    <script src="https://code.highcharts.com/mapdata/custom/world.js"></script>
+    <script>
+      Highcharts.getJSON("vadata.json", function (data) {
+        var orUnique = {};
+        var distinct = [];
+        for (var i in data) {
+          if (typeof orUnique[data[i].impor] == "undefined") {
+            distinct.push(data[i].impor);
+          }
+          orUnique[data[i].impor] = 0;
+        }
+        function getTotal(data, origin) {
+          var count = 0;
+          for (var i = 0; i < data.length; i++) {
+            if (data[i].impor == origin) {
+              count++;
+            }
+          }
+          return count;
+        }
+
+        function getItem(array, value) {
+          for (var i = 0, len = array.length; i < len; i++)
+            if (array[i] && array[i].impor === value) return array[i];
+        }
+
+        var originsData = [];
+        distinct.forEach(function (neworigin) {
+          var counts = getTotal(data, neworigin);
+          var item = getItem(data, neworigin);
+          var lat = item.originsLat;
+          var lon = item.originsLong;
+          originsData.push({
+            name: neworigin,
+            lat: lat,
+            lon: lon,
+            z: counts,
+          });
+        });
+
+        Highcharts.mapChart("container", {
+          chart: {
+            borderWidth: 1,
+            map: "custom/world",
+          },
+
+          title: {
+            text: "World population 2013 by country",
+          },
+
+          subtitle: {
+            text: "Demo of Highcharts map with bubbles",
+          },
+
+          legend: {
+            enabled: false,
+          },
+
+          mapNavigation: {
+            enabled: true,
+            buttonOptions: {
+              verticalAlign: "bottom",
+            },
+          },
+
+          series: [
+            {
+              name: "Countries",
+              color: "#E0E0E0",
+              enableMouseTracking: false,
+            },
+            {
+              allowPointSelect: true,
+              cursor: "pointer",
+              type: "mapbubble",
+              name: "Total Letters",
+              color: "#78b5a1",
+              data: originsData,
+              minSize: 8,
+              maxSize: "20%",
+              tooltip: {
+                pointFormat: "{point.name}: {point.z} letters"
+              },
+            },
+          ],
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div
+      id="container"
+      style="height: 500px; min-width: 310px; max-width: 800px; margin: 0 auto"
+    ></div>
+  </body>
+</html>

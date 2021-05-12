@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.6/proj4.js"></script>
+    <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+    <script
+      type="text/javascript"
+      src="https://code.highcharts.com/mapdata/custom/world-continents.js?ver=4.9.17"
+    ></script>
+    <style>
+        html, body{
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Helvetica, sans-serif;
+            text-align: center;
+        }
+        .container{
+            display: flex;
+            width: 100%;
+            height: auto;
+            align-items: center;
+            justify-content: center;
+        }
+
+    </style>
+  </head>
+  <body>
+      <h1>Visualizing Abolition</h1>
+      <dvi class="container">
+        <div id="map-container"></div>
+        <div id="time-container"></div>
+      </dvi>
+
+    <script>
+      $.getJSON("vadata.json", function (data) {
+        console.log(data);
+        var orUnique = {};
+        var distinct = [];
+        for (var i in data) {
+          if (typeof orUnique[data[i].impor] == "undefined") {
+            distinct.push(data[i].impor);
+          }
+          orUnique[data[i].impor] = 0;
+        }
+
+        function getTotal(data, origin) {
+          var count = 0;
+          for (var i = 0; i < data.length; i++) {
+            if (data[i].impor == origin) {
+              count++;
+            }
+          }
+          return count;
+        }
+
+        function getItem(array, value) {
+          for (var i = 0, len = array.length; i < len; i++)
+            if (array[i] && array[i].impor === value) return array[i];
+        }
+
+        var originsData = [];
+        distinct.forEach(function (neworigin) {
+          var counts = getTotal(data, neworigin);
+          var item = getItem(data, neworigin);
+          var lat = item.originsLat;
+          var lon = item.originsLong;
+          originsData.push({
+            lat: lat,
+            lon: lon,
+            z: counts,
+          });
+        });
+        var chart = Highcharts.mapChart("map-container", {
+          chart: {
+            borderWidth: 1,
+            map: "custom/world-continents",
+          },
+
+          title: {
+            text: null,
+          },
+
+          subtitle: {
+            text: null,
+          },
+
+          legend: {
+            enabled: false,
+          },
+
+          mapNavigation: {
+            enabled: true,
+            buttonOptions: {
+              verticalAlign: "bottom",
+            },
+          },
+          series: [
+            {
+              name: "Countries",
+              enableMouseTracking: false,
+            },
+            {
+              allowPointSelect: true,
+              cursor: "pointer",
+              type: "mapbubble",
+              name: "Total Letters",
+              color: "#78b5a1",
+              data: originsData,
+              minSize: 8,
+              maxSize: "20%",
+              tooltip: {
+                pointFormat: "{point.name}: {point.z} letters",
+              },
+            },
+          ],
+        });
+        var yearsRange = [];
+        for (i = 1816; i <= 1900; i++) yearsRange.push(i);
+
+        function getCount(data, date) {
+          var count = 0;
+          for (var i = 0; i < data.length; i++) {
+            if (data[i].dateSent.slice(0, 4) == date) {
+              count++;
+            }
+          }
+          return count;
+        }
+
+        var yearCounts = [];
+        yearsRange.forEach(function (year) {
+          var counts = getCount(data, year);
+          yearCounts.push({ name: year, y: counts });
+        });
+        $(function () {
+          var myChart = Highcharts.chart("time-container", {
+            chart: {
+              type: "column",
+              borderRadius: 15,
+              spacingBottom: 50,
+            },
+            title: {
+              text: null,
+            },
+            legend: {
+              enabled: false,
+            },
+            yAxis: {
+              title: {
+                text: null,
+              },
+            },
+            xAxis: {
+              type: "category",
+            },
+            series: [
+              {
+                data: yearCounts,
+                turboThreshold: 1900,
+                color: "#00744E",
+                name: "Letters",
+              },
+            ],
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
